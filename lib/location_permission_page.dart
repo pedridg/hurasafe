@@ -31,7 +31,7 @@ class _LocationPermissionPageState extends State<LocationPermissionPage> {
       return;
     }
 
-    // --- ANDROID / iOS ---
+    // --- ANDROID / aiOeS ---
     PermissionStatus status = await Permission.locationWhenInUse.request();
 
     if (status.isGranted) {
@@ -47,7 +47,7 @@ class _LocationPermissionPageState extends State<LocationPermissionPage> {
         MaterialPageRoute(builder: (_) => const HomePage()),
       );
     } else if (status.isPermanentlyDenied) {
-      // Si el usuario negó permanentemente, abrir ajustes
+      // Si el usuario negó permanentemente, abrir ajustes, sino qcsm
       openAppSettings();
     } else {
       // Negado temporalmente, mostrar mensaje
@@ -70,7 +70,7 @@ class _LocationPermissionPageState extends State<LocationPermissionPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
 
-              // LOGO GRANDE
+              // LOGO 
               Image.asset(
                 "assets/images/logo.png",
                 width: 350,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'real_time_map_page.dart';   // <<<<<< AGREGA ESTE IMPORT
+import 'numeros_de_ayuda.dart';
+import 'kits_de_emergencia.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -81,13 +83,28 @@ class HomePage extends StatelessWidget {
               menuItem(
                 iconPath: "assets/icons/kit.jpg",
                 label: "Kit de emergencia",
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const kitsDeEmergencia(),
+                    ),
+                  );
+                },
               ),
-
+              //Numeros de ayuda
               menuItem(
                 iconPath: "assets/icons/ayuda.jpg",
                 label: "Números de ayuda",
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NumerosDeAyuda(),
+                    ),
+                  );
+                },
+                
               ),
 
               menuItem(

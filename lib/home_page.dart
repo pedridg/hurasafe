@@ -3,6 +3,7 @@ import 'real_time_map_page.dart';   // <<<<<< AGREGA ESTE IMPORT
 import 'numeros_de_ayuda.dart';
 import 'kits_de_emergencia.dart';
 
+import 'alerts_page.dart';
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -71,7 +72,12 @@ class HomePage extends StatelessWidget {
               menuItem(
                 iconPath: "assets/icons/alerta.jpg",
                 label: "Alertas actuales",
-                onTap: () {},
+                onTap: () {
+                      Navigator.push(
+                        context,
+                    MaterialPageRoute(builder: (context) => const AlertsPage()),
+                   );
+                },
               ),
 
               menuItem(

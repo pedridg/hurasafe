@@ -25,12 +25,13 @@ class _RealTimeMapPageState extends State<RealTimeMapPage> {
   List<Polyline> hurricaneTracks = [];
   List<Marker> stormMarkers = [];
 
+  // SOLO OpenWeatherMap
   final String _openWeatherApiKey = '50f497c804cad52458d3385805be17f2';
 
   bool showSatellite = true;
   bool showPrecip = true;
   bool showWind = true;
-  bool showTemp = false;
+  bool showTemp = true;
   bool showPressure = false;
   bool showNOAAtracks = true;
   bool showStormMarkers = true;
@@ -272,7 +273,7 @@ class _RealTimeMapPageState extends State<RealTimeMapPage> {
               // SATÉLITE
               if (showSatellite)
                 Opacity(
-                  opacity: 0.40,
+                  opacity: 0.35,
                   child: TileLayer(
                     urlTemplate:
                         "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/goes-e/{z}/{x}/{y}.png",
@@ -299,10 +300,10 @@ class _RealTimeMapPageState extends State<RealTimeMapPage> {
                   ),
                 ),
 
-              // TEMPERATURA
+              // TEMPERATURA — CORREGIDO (OpenWeatherMap)
               if (showTemp)
                 Opacity(
-                  opacity: 0.50,
+                  opacity: 0.75,
                   child: TileLayer(
                     urlTemplate:
                         "https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=$_openWeatherApiKey",
@@ -315,7 +316,7 @@ class _RealTimeMapPageState extends State<RealTimeMapPage> {
                   opacity: 0.50,
                   child: TileLayer(
                     urlTemplate:
-                        "https://tile.openweathermap.org/map/pressure_new/{z}/{x}/{y}.png?appid=$_openWeatherApiKey",
+                        "https://tile.openweathermap.org/map/pressure/{z}/{x}/{y}.png?appid=$_openWeatherApiKey",
                   ),
                 ),
 
@@ -348,7 +349,7 @@ class _RealTimeMapPageState extends State<RealTimeMapPage> {
             ],
           ),
 
-          // DIRECCIÓN MOSTRADA EN LA PARTE SUPERIOR
+          // DIRECCIÓN
           Positioned(
             top: 12,
             left: 12,

@@ -1,3 +1,4 @@
 {
-    "dart.flutterSdkPath": "C:\\dev\\flutter_windows_3.38.3-stable\\flutter"
+  "dart.flutterSdkPath": "C:\\dev\\flutter_windows_3.38.3-stable\\flutter",
+  "cmake.sourceDirectory": "C:/Users/PC-DELL/Downloads/hurasafe/windows"
 }

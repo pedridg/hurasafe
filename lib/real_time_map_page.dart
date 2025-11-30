@@ -1,12 +1,17 @@
-// lib/real_time_map_page.dart
+// ============================================================================
+// HURASAFE — MAPA DE HURACANES
+// Versión Full Optimizada • flutter_map 7.x compatible • incluye OTIS Cat 5
+// ============================================================================
+
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:latlong2/latlong.dart';
 
 class RealTimeMapPage extends StatefulWidget {
   const RealTimeMapPage({super.key});
@@ -16,340 +21,405 @@ class RealTimeMapPage extends StatefulWidget {
 }
 
 class _RealTimeMapPageState extends State<RealTimeMapPage> {
-  final MapController _mapController = MapController();
+  final MapController map = MapController();
 
-  LatLng? userLocation;
-  String userAddress = 'Cargando ubicación...';
+  LatLng? userPos;
+  String userAddress = "Cargando ubicación...";
   bool loading = true;
+  String error = "";
 
-  List<Polyline> hurricaneTracks = [];
+  // Capas de huracanes
+  List<Polyline> stormTracks = [];
+  List<Polygon> windPolygons = [];
   List<Marker> stormMarkers = [];
 
-  // SOLO OpenWeatherMap
-  final String _openWeatherApiKey = '50f497c804cad52458d3385805be17f2';
-
-  bool showSatellite = true;
-  bool showPrecip = true;
+  // Capas de meteorología
+  bool showSat = true;
+  bool showRain = true;
   bool showWind = true;
-  bool showTemp = true;
+  bool showTemp = false;
   bool showPressure = false;
-  bool showNOAAtracks = true;
-  bool showStormMarkers = true;
+
+  bool showTracks = true;
+  bool showMarkers = true;
+  bool showWindRadii = true;
+
+  final String owKey = "50f497c804cad52458d3385805be17f2";
 
   @override
   void initState() {
     super.initState();
-    _initAll();
+    initialize();
   }
 
-  Future<void> _initAll() async {
-    await _ensureLocation();
-    await Future.wait([
-      loadHurricaneTracks(),
-      loadStorms(),
-    ]);
+  Future<void> initialize() async {
     setState(() {
-      loading = false;
+      loading = true;
+      error = "";
+    });
+
+    try {
+      await requestLocation();
+      await loadStormData();
+    } catch (e) {
+      error = "Error cargando datos: $e";
+    }
+
+    setState(() => loading = false);
+  }
+
+  // ==================================================================
+  // UBICACIÓN
+  // ==================================================================
+  Future<void> requestLocation() async {
+    LocationPermission perm = await Geolocator.requestPermission();
+    if (perm == LocationPermission.denied ||
+        perm == LocationPermission.deniedForever) {
+      userAddress = "Permiso de ubicación denegado";
+      return;
+    }
+
+    Position p = await Geolocator.getCurrentPosition();
+    userPos = LatLng(p.latitude, p.longitude);
+
+    map.move(userPos!, 7);
+    userAddress = await reverseGeocode(p.latitude, p.longitude);
+  }
+
+  Future<String> reverseGeocode(double lat, double lon) async {
+    try {
+      final url =
+          "https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon&zoom=18&addressdetails=1";
+
+      final r = await http.get(Uri.parse(url),
+          headers: {"User-Agent": "HuraSafe-App/1.0"});
+
+      if (r.statusCode != 200) return "Ubicación desconocida";
+
+      final a = jsonDecode(r.body)["address"] ?? {};
+
+      final city = a["city"] ?? a["town"] ?? a["village"] ?? "";
+      final state = a["state"] ?? "";
+      final country = a["country"] ?? "";
+
+      return "$city, $state, $country";
+    } catch (_) {
+      return "Ubicación desconocida";
+    }
+  }
+
+  // ==================================================================
+  // FUNCIONES NUEVAS PARA COLORES DE HURACÁN
+  // ==================================================================
+  Color _stormColor(int kt) {
+    if (kt < 34) return Colors.lightBlue;           // Depresión
+    if (kt < 64) return Colors.green;               // Tormenta tropical
+    if (kt < 83) return Colors.yellow.shade700;     // Cat 1
+    if (kt < 96) return Colors.orange;              // Cat 2
+    if (kt < 113) return Colors.deepOrange;         // Cat 3
+    if (kt > 137) return const Color.fromARGB(255, 78, 4, 4);             // Cat 4
+    return const Color.fromARGB(255, 78, 72, 71);                              // Cat 5
+  }
+
+  // ==================================================================
+  // SIMULACIÓN API HURACANES + OTIS CAT 5
+  // ==================================================================
+  Future<String> getMockStormAPI() async {
+    await Future.delayed(const Duration(milliseconds: 600));
+
+    return jsonEncode({
+      "storms": [
+        // -----------------------------------------------------------
+        // 1. OTIS — Huracán Categoría 5
+        // -----------------------------------------------------------
+        {
+          "name": "OTIS",
+          "wind_kt": 150,
+          "pressure": 923,
+          "type": "HURRICANE",
+
+          // ← AQUÍ PUEDES PONER TUS COORDENADAS
+          "pos": {"lat": 14.5, "lon": -101.5},
+
+          "track": [
+            {"lat": 14.5, "lon": -101.5},
+            {"lat": 15.4, "lon": -100.7},
+            {"lat": 16.0, "lon": -100.2},
+            {"lat": 16.5, "lon": -100.0},
+            {"lat": 16.78, "lon": -99.85}
+          ],
+
+          "radii": [
+            {"kt": 34, "nm": 90},
+            {"kt": 64, "nm": 25},
+            {"kt": 100, "nm": 12}
+          ]
+        },
+
+        // -----------------------------------------------------------
+        // 2. KOTO
+        // -----------------------------------------------------------
+        {
+          "name": "KOTO",
+          "wind_kt": 44,
+          "pressure": 965,
+          "type": "TROPICAL STORM",
+          "pos": {"lat": 14.32, "lon": 111.63},
+          "track": [
+            {"lat": 14.30, "lon": 109.27},
+            {"lat": 14.64, "lon": 110.33},
+            {"lat": 14.48, "lon": 110.54},
+            {"lat": 14.73, "lon": 111.01},
+            {"lat": 14.32, "lon": 111.63},
+          ],
+          "radii": [
+            {"kt": 34, "nm": 140},
+            {"kt": 64, "nm": 45}
+          ]
+        },
+
+        // -----------------------------------------------------------
+        // 3. DITWAH
+        // -----------------------------------------------------------
+        {
+          "name": "Ditwah",
+          "wind_kt": 30,
+          "pressure": 100,
+          "type": "tropical depression",
+          "pos": {"lat": 10.6, "lon": 81.37},
+          "track": [
+            {"lat": 11.51, "lon": 80.12},
+            {"lat": 11.60, "lon": 80.85},
+            {"lat": 12.2, "lon": 81.73},
+            {"lat": 12.5, "lon": 81.09},
+            {"lat": 12.0, "lon": 81.09},
+            {"lat": 11.7, "lon": 81.41},
+            {"lat": 10.6, "lon": 81.37},
+          ],
+          "radii": [
+            {"kt": 34, "nm": 100}
+          ]
+        }
+      ]
     });
   }
 
-  // ------------------------------------------------------------------------
-  // UBICACIÓN
-  // ------------------------------------------------------------------------
-  Future<void> _ensureLocation() async {
-    try {
-      LocationPermission perm = await Geolocator.requestPermission();
-      if (perm == LocationPermission.denied ||
-          perm == LocationPermission.deniedForever) {
-        setState(() {
-          userAddress = 'Permiso de ubicación denegado';
-          loading = false;
-        });
-        return;
-      }
+  // ==================================================================
+  // PROCESAR HURACANES
+  // ==================================================================
+  Future<void> loadStormData() async {
+    stormTracks.clear();
+    windPolygons.clear();
+    stormMarkers.clear();
 
-      Position pos = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
+    final raw = await getMockStormAPI();
+    final data = jsonDecode(raw);
 
-      userLocation = LatLng(pos.latitude, pos.longitude);
+    final storms = data["storms"] ?? [];
 
-      await Future.delayed(const Duration(milliseconds: 250));
-      _mapController.move(userLocation!, 6);
-
-      userAddress =
-          await _getAddressFromCoordinates(pos.latitude, pos.longitude);
-
-      setState(() {});
-    } catch (e) {
-      userAddress = "Error obteniendo la ubicación";
-      setState(() {});
+    for (final s in storms) {
+      processStorm(s);
     }
   }
 
-  Future<String> _getAddressFromCoordinates(double lat, double lon) async {
-    try {
-      final url =
-          "https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon&zoom=18&addressdetails=1&accept-language=es";
-
-      final r = await http.get(Uri.parse(url), headers: {
-        'User-Agent': 'HuraSafe/1.0 (contact@example.com)'
-      });
-
-      if (r.statusCode != 200) return "Dirección no disponible";
-
-      final data = jsonDecode(r.body);
-      final addr = data["address"] ?? {};
-
-      final city = addr["city"] ??
-          addr["town"] ??
-          addr["village"] ??
-          addr["municipality"] ??
-          "";
-      final state = addr["state"] ?? "";
-      final country = addr["country"] ?? "";
-      final cp = addr["postcode"] ?? "";
-
-      final txt = [city, state, country].where((e) => e != "").join(", ");
-      return txt.isEmpty ? "Ubicación (CP: $cp)" : "$txt (CP: $cp)";
-    } catch (_) {
-      return "Dirección no disponible";
-    }
+  String classifyStorm(int kt) {
+    if (kt >= 137) return "Huracán Categoría 5";
+    if (kt >= 113) return "Huracán Categoría 4";
+    if (kt >= 96) return "Huracán Categoría 3";
+    if (kt >= 83) return "Huracán Categoría 2";
+    if (kt >= 64) return "Huracán Categoría 1";
+    if (kt >= 35) return "Tormenta Tropical";
+    if (kt >= 1) return "Depresión Tropical";
+    return "Disturbio";
   }
 
-  // ------------------------------------------------------------------------
-  // NOAA HURACANES — TRACKS
-  // ------------------------------------------------------------------------
-  Future<void> loadHurricaneTracks() async {
-    hurricaneTracks = [];
+  void processStorm(Map s) {
+    final name = s["name"] ?? "Storm";
+    final int windKt = s["wind_kt"] ?? 0;
+    final int pressure = s["pressure"] ?? 0;
+    final String type = classifyStorm(windKt);
 
-    final urls = [
-      'https://www.nhc.noaa.gov/gis/forecast/atcf/latest/aal_latest_best_track.geojson',
-      'https://www.nhc.noaa.gov/refresh/graphics_at1_latest/AL_tracks_latest.geojson',
-    ];
+    final pos = s["pos"];
+    final track = s["track"] ?? [];
 
-    for (final url in urls) {
-      try {
-        final r = await http.get(Uri.parse(url));
-        if (r.statusCode != 200) continue;
+    if (pos == null) return;
 
-        final data = jsonDecode(r.body);
-        final features = data["features"] as List<dynamic>? ?? [];
+    LatLng center = LatLng(pos["lat"], pos["lon"]);
 
-        for (final f in features) {
-          final geom = f["geometry"];
-          if (geom == null) continue;
+    // TRACK
+    List<LatLng> points =
+        track.map<LatLng>((p) => LatLng(p["lat"], p["lon"])).toList();
 
-          if (geom["type"] == "LineString") {
-            final coords = (geom["coordinates"] as List)
-                .map((p) => LatLng(p[1].toDouble(), p[0].toDouble()))
-                .toList();
+    if (points.length > 1) {
+      stormTracks.add(
+        Polyline(
+          points: points,
+          color: _stormColor(windKt),   // ← COLOR NUEVO
+          strokeWidth: 4,
+        ),
+      );
+    }
 
-            hurricaneTracks.add(
-              Polyline(
-                points: coords,
-                strokeWidth: 3,
-                color: Colors.red,
+    // MARCADOR
+    stormMarkers.add(
+      Marker(
+        point: center,
+        width: 200,
+        height: 110,
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: _stormColor(windKt),     // ← COLOR NUEVO
+                borderRadius: BorderRadius.circular(8),
               ),
-            );
-          }
-        }
-      } catch (e) {
-        debugPrint("NOAA track error: $e");
-      }
-    }
-
-    setState(() {});
-  }
-
-  // ------------------------------------------------------------------------
-  // NOAA TORMENTAS — MARKERS
-  // ------------------------------------------------------------------------
-  Future<void> loadStorms() async {
-    stormMarkers = [];
-
-    final urls = [
-      'https://www.nhc.noaa.gov/gis/forecast/atcf/latest/active_storms.geojson',
-      'https://www.nhc.noaa.gov/refresh/graphics_at1_latest/storm_locations.geojson',
-    ];
-
-    for (final url in urls) {
-      try {
-        final r = await http.get(Uri.parse(url));
-        if (r.statusCode != 200) continue;
-
-        final data = jsonDecode(r.body);
-        final features = data["features"] as List<dynamic>? ?? [];
-
-        for (final f in features) {
-          final geom = f["geometry"];
-          if (geom == null || geom["type"] != "Point") continue;
-
-          final coords = geom["coordinates"];
-
-          final name =
-              f["properties"]?["name"] ?? f["properties"]?["stormName"] ?? "Tormenta";
-
-          stormMarkers.add(
-            Marker(
-              point: LatLng(coords[1].toDouble(), coords[0].toDouble()),
-              width: 130,
-              height: 55,
               child: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade700,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      name.toString(),
-                      style: const TextStyle(
+                  Text(
+                    "$name — $type",
+                    style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 12,
                         fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                        fontSize: 13),
                   ),
-                  const Icon(Icons.location_on, color: Colors.red, size: 28),
+                  Text(
+                    "Viento: $windKt kt  |  Presión: $pressure hPa",
+                    style: const TextStyle(color: Colors.white, fontSize: 11),
+                  ),
                 ],
               ),
             ),
-          );
-        }
-      } catch (e) {
-        debugPrint("NOAA storm error: $e");
-      }
-    }
+            Icon(Icons.location_on, color: _stormColor(windKt), size: 32),
+          ],
+        ),
+      ),
+    );
 
-    setState(() {});
+    // RADIOS DE VIENTO
+    final c = _stormColor(windKt);
+
+    for (final r in (s["radii"] ?? [])) {
+      final nm = r["nm"];
+      double deg = nm / 60;
+
+      windPolygons.add(
+        Polygon(
+          points: generateCircle(center, deg),
+          color: c.withOpacity(.22),   // ← COLOR NUEVO
+          borderColor: c,              // ← COLOR NUEVO
+          borderStrokeWidth: 1.4,
+        ),
+      );
+    }
   }
 
-  // ------------------------------------------------------------------------
-  // UI MAPA + LAYERS
-  // ------------------------------------------------------------------------
+  List<LatLng> generateCircle(LatLng c, double deg) {
+    List<LatLng> pts = [];
+    for (int i = 0; i < 360; i += 12) {
+      pts.add(LatLng(
+        c.latitude + deg * math.cos(i * math.pi / 180),
+        c.longitude + deg * math.sin(i * math.pi / 180),
+      ));
+    }
+    return pts;
+  }
+
+  // ==================================================================
+  // INTERFAZ
+  // ==================================================================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("HuraSafe — Mapa en tiempo real"),
+        backgroundColor: Colors.blueGrey.shade800,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () async {
-              setState(() => loading = true);
-              await loadHurricaneTracks();
-              await loadStorms();
-              setState(() => loading = false);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.my_location),
-            onPressed: () {
-              if (userLocation != null) {
-                _mapController.move(userLocation!, 8);
-              }
-            },
-          )
+          IconButton(onPressed: initialize, icon: const Icon(Icons.refresh)),
+          if (userPos != null)
+            IconButton(
+                onPressed: () => map.move(userPos!, 8),
+                icon: const Icon(Icons.my_location))
         ],
       ),
+
       body: Stack(
         children: [
           FlutterMap(
-            mapController: _mapController,
+            mapController: map,
             options: MapOptions(
-              initialCenter: userLocation ?? LatLng(16.8380, -99.8159),
+              initialCenter: userPos ?? const LatLng(20, -85),
               initialZoom: 5,
               maxZoom: 18,
               minZoom: 2,
             ),
             children: [
-              // MAPA BASE
               TileLayer(
-                urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                userAgentPackageName: "com.example.hurasafe",
-              ),
+                  urlTemplate:
+                      "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  userAgentPackageName: "hurasafe"),
 
-              // SATÉLITE
-              if (showSatellite)
-                Opacity(
-                  opacity: 0.35,
-                  child: TileLayer(
-                    urlTemplate:
-                        "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/goes-e/{z}/{x}/{y}.png",
-                  ),
-                ),
+              if (showSat)
+                weatherLayer(
+                    "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/goes-e/{z}/{x}/{y}.png",
+                    opacity: .35),
 
-              // LLUVIA
-              if (showPrecip)
-                Opacity(
-                  opacity: 0.55,
-                  child: TileLayer(
-                    urlTemplate:
-                        "https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=$_openWeatherApiKey",
-                  ),
-                ),
+              if (showRain)
+                weatherLayer(
+                    "https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=$owKey",
+                    opacity: .55),
 
-              // VIENTO
               if (showWind)
-                Opacity(
-                  opacity: 0.50,
-                  child: TileLayer(
-                    urlTemplate:
-                        "https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=$_openWeatherApiKey",
-                  ),
-                ),
+                weatherLayer(
+                    "https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=$owKey",
+                    opacity: .40),
 
-              // TEMPERATURA — CORREGIDO (OpenWeatherMap)
               if (showTemp)
-                Opacity(
-                  opacity: 0.75,
-                  child: TileLayer(
-                    urlTemplate:
-                        "https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=$_openWeatherApiKey",
-                  ),
-                ),
+                weatherLayer(
+                    "https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=$owKey",
+                    opacity: .70),
 
-              // PRESIÓN
               if (showPressure)
-                Opacity(
-                  opacity: 0.50,
-                  child: TileLayer(
-                    urlTemplate:
-                        "https://tile.openweathermap.org/map/pressure/{z}/{x}/{y}.png?appid=$_openWeatherApiKey",
-                  ),
-                ),
+                weatherLayer(
+                    "https://tile.openweathermap.org/map/pressure_new/{z}/{x}/{y}.png?appid=$owKey",
+                    opacity: .50),
 
-              // TRACKS
-              if (showNOAAtracks)
-                PolylineLayer(polylines: hurricaneTracks),
+              if (showWindRadii) PolygonLayer(polygons: windPolygons),
+              if (showTracks) PolylineLayer(polylines: stormTracks),
+              if (showMarkers) MarkerLayer(markers: stormMarkers),
 
-              // TORMENTAS
-              if (showStormMarkers)
-                MarkerLayer(markers: stormMarkers),
-
-              // USUARIO
-              if (userLocation != null)
+              if (userPos != null)
                 MarkerLayer(
                   markers: [
                     Marker(
-                      point: userLocation!,
+                      point: userPos!,
                       width: 40,
                       height: 40,
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Colors.blue,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3),
-                        ),
+                            color: Colors.blue,
+                            shape: BoxShape.circle,
+                            border:
+                                Border.all(color: Colors.white, width: 3)),
+                        child: const Icon(Icons.person, color: Colors.white),
                       ),
-                    )
+                    ),
                   ],
                 )
             ],
           ),
 
-          // DIRECCIÓN
+          if (loading || error.isNotEmpty)
+            Container(
+              color: Colors.black54,
+              child: Center(
+                child: Text(
+                  loading ? "Cargando..." : error,
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ),
+            ),
+
           Positioned(
             top: 12,
             left: 12,
@@ -357,21 +427,15 @@ class _RealTimeMapPageState extends State<RealTimeMapPage> {
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.55),
-                borderRadius: BorderRadius.circular(10),
-              ),
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(10)),
               child: Text(
                 userAddress,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.white),
               ),
             ),
           ),
 
-          // TOGGLES
           Positioned(
             bottom: 15,
             left: 10,
@@ -379,44 +443,67 @@ class _RealTimeMapPageState extends State<RealTimeMapPage> {
             child: Card(
               elevation: 6,
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _toggle("Sat", showSatellite,
-                          (v) => setState(() => showSatellite = v)),
-                      _toggle("Lluvia", showPrecip,
-                          (v) => setState(() => showPrecip = v)),
-                      _toggle("Viento", showWind,
+                      layerToggle("Tracks", showTracks,
+                          (v) => setState(() => showTracks = v)),
+                      layerToggle("Tormentas", showMarkers,
+                          (v) => setState(() => showMarkers = v)),
+                      layerToggle("Radios", showWindRadii,
+                          (v) => setState(() => showWindRadii = v)),
+
+                      const VerticalDivider(),
+
+                      layerToggle("Sat", showSat,
+                          (v) => setState(() => showSat = v)),
+                      layerToggle("Lluvia", showRain,
+                          (v) => setState(() => showRain = v)),
+                      layerToggle("Viento", showWind,
                           (v) => setState(() => showWind = v)),
-                      _toggle("Temp", showTemp,
+                      layerToggle("Temp", showTemp,
                           (v) => setState(() => showTemp = v)),
-                      _toggle("Presión", showPressure,
+                      layerToggle("Presión", showPressure,
                           (v) => setState(() => showPressure = v)),
-                      _toggle("Tracks", showNOAAtracks,
-                          (v) => setState(() => showNOAAtracks = v)),
-                      _toggle("Tormentas", showStormMarkers,
-                          (v) => setState(() => showStormMarkers = v)),
                     ],
                   ),
                 ),
               ),
             ),
-          ),
+          )
         ],
       ),
     );
   }
 
-  Widget _toggle(String label, bool value, ValueChanged<bool> f) {
-    return Row(
-      children: [
-        Text(label,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-        Switch(value: value, onChanged: f),
-        const SizedBox(width: 8),
-      ],
+  // ==================================================================
+  // REUTILIZABLES
+  // ==================================================================
+  Widget weatherLayer(String url, {required double opacity}) {
+    return Opacity(
+      opacity: opacity,
+      child: TileLayer(
+        urlTemplate: url,
+        userAgentPackageName: "hurasafe",
+      ),
+    );
+  }
+
+  Widget layerToggle(String label, bool value, Function(bool) onChange) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Column(
+        children: [
+          Text(label,
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: value ? Colors.blue : Colors.grey)),
+          Switch.adaptive(value: value, onChanged: onChange),
+        ],
+      ),
     );
   }
 }

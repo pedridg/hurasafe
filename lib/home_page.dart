@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'real_time_map_page.dart';   // <<<<<< AGREGA ESTE IMPORT
 import 'numeros_de_ayuda.dart';
 import 'kits_de_emergencia.dart';
+import 'recomendaciones_page.dart';
 
 import 'alerts_page.dart';
 class HomePage extends StatelessWidget {
@@ -79,6 +80,19 @@ class HomePage extends StatelessWidget {
                    );
                 },
               ),
+
+              menuItem(
+                iconPath: "assets/icons/recomendaciones.jpg",
+                label: "Recomendaciones",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const RecomendacionesPage()),
+                    );
+                  },
+                ),
+
+
 
               menuItem(
                 iconPath: "assets/icons/recomendaciones.jpg",

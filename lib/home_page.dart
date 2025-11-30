@@ -92,14 +92,6 @@ class HomePage extends StatelessWidget {
                   },
                 ),
 
-
-
-              menuItem(
-                iconPath: "assets/icons/recomendaciones.jpg",
-                label: "Recomendaciones",
-                onTap: () {},
-              ),
-
               menuItem(
                 iconPath: "assets/icons/kit.jpg",
                 label: "Kit de emergencia",

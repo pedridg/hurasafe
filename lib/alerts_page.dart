@@ -104,3 +104,47 @@ class AlertsPage extends StatelessWidget {
     );
   }
 }
+/*class AlertPage extends StatelessWidget {
+  final double latitude;
+  final double longitude;
+
+  const AlertPage({
+    super.key,
+    required this.latitude,
+    required this.longitude,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text("Lat: $latitude — Lng: $longitude"),
+      ),
+    );
+  }
+}*/
+class AlertPage extends StatelessWidget {
+  final double latitude;
+  final double longitude;
+
+  const AlertPage({
+    super.key,
+    required this.latitude,
+    required this.longitude,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Alertas actuales")),
+
+      body: Center(
+        child: Text(
+          "Tu ubicación actual:\nLat: $latitude\nLng: $longitude",
+          style: const TextStyle(fontSize: 18),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+}

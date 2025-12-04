@@ -1,5 +1,8 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:hurasafe/alerts_page.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hurasafe/home_page.dart';
@@ -112,6 +115,111 @@ class _LocationPermissionPageState extends State<LocationPermissionPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+/*Future<void> requestLocation(BuildContext context) async {
+  // --- WEB ---
+  if (kIsWeb) {
+    try {
+      Position pos = await Geolocator.getCurrentPosition();
+      print("WEB POS: ${pos.latitude}, ${pos.longitude}");
+
+      BuildContext context;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AlertPage(
+            latitude: pos.latitude,
+            longitude: pos.longitude,
+          ),
+        ),
+      );
+    } catch (e) {
+      print("Error obteniendo posición en Web: $e");
+    }
+    return;
+  }
+
+  // --- ANDROID / iOS ---
+  PermissionStatus status = await Permission.locationWhenInUse.request();
+
+  if (status.isGranted) {
+    try {
+      Position pos = await Geolocator.getCurrentPosition();
+      print("LAT: ${pos.latitude}, LNG: ${pos.longitude}");
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AlertPage(
+            latitude: pos.latitude,
+            longitude: pos.longitude,
+          ),
+        ),
+      );
+    } catch (e) {
+      print("Error obteniendo posición: $e");
+    }
+  } else if (status.isPermanentlyDenied) {
+    openAppSettings();
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Necesitamos permiso de ubicación para continuar"),
+      ),
+    );
+  }
+}*/
+Future<void> requestLocation(BuildContext context) async {
+  // --- WEB ---
+  if (kIsWeb) {
+    try {
+      Position pos = await Geolocator.getCurrentPosition();
+      print("WEB POS: ${pos.latitude}, ${pos.longitude}");
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AlertPage(
+            latitude: pos.latitude,
+            longitude: pos.longitude,
+          ),
+        ),
+      );
+    } catch (e) {
+      print("Error obteniendo posición en Web: $e");
+    }
+    return;
+  }
+
+  // --- ANDROID / iOS ---
+  PermissionStatus status = await Permission.locationWhenInUse.request();
+
+  if (status.isGranted) {
+    try {
+      Position pos = await Geolocator.getCurrentPosition();
+      print("LAT: ${pos.latitude}, LNG: ${pos.longitude}");
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AlertPage(
+            latitude: pos.latitude,
+            longitude: pos.longitude,
+          ),
+        ),
+      );
+    } catch (e) {
+      print("Error obteniendo posición: $e");
+    }
+  } else if (status.isPermanentlyDenied) {
+    openAppSettings();
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Necesitamos permiso de ubicación para continuar"),
       ),
     );
   }

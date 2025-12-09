@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'real_time_map_page.dart';   // <<<<<< AGREGA ESTE IMPORT
+import 'real_time_map_page.dart';
 import 'numeros_de_ayuda.dart';
 import 'kits_de_emergencia.dart';
 import 'recomendaciones_page.dart';
-
 import 'alerts_page.dart';
+import 'quienes_somos_page.dart';  
+
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -56,7 +57,7 @@ class HomePage extends StatelessWidget {
 
               const SizedBox(height: 30),
 
-              // NAVEGACIÓN AL MAPA EN TIEMPO REAL
+              // MAPA
               menuItem(
                 iconPath: "assets/icons/map.jpg",
                 label: "Mapa en tiempo real",
@@ -70,28 +71,35 @@ class HomePage extends StatelessWidget {
                 },
               ),
 
+              // ALERTAS
               menuItem(
                 iconPath: "assets/icons/alerta.jpg",
                 label: "Alertas actuales",
                 onTap: () {
-                      Navigator.push(
-                        context,
-                    MaterialPageRoute(builder: (context) => const AlertsPage()),
-                   );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AlertsPage(),
+                    ),
+                  );
                 },
               ),
 
+              // RECOMENDACIONES
               menuItem(
                 iconPath: "assets/icons/recomendaciones.jpg",
                 label: "Recomendaciones",
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const RecomendacionesPage()),
-                    );
-                  },
-                ),
+                    MaterialPageRoute(
+                      builder: (_) => const RecomendacionesPage(),
+                    ),
+                  );
+                },
+              ),
 
+              // KIT DE EMERGENCIA
               menuItem(
                 iconPath: "assets/icons/kit.jpg",
                 label: "Kit de emergencia",
@@ -104,7 +112,8 @@ class HomePage extends StatelessWidget {
                   );
                 },
               ),
-              //Numeros de ayuda
+
+              // NÚMEROS DE AYUDA
               menuItem(
                 iconPath: "assets/icons/ayuda.jpg",
                 label: "Números de ayuda",
@@ -116,13 +125,20 @@ class HomePage extends StatelessWidget {
                     ),
                   );
                 },
-                
               ),
 
+              // QUIÉNES SOMOS
               menuItem(
                 iconPath: "assets/icons/quienes.jpg",
                 label: "Quiénes somos",
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const QuienesSomosPage(),
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -151,7 +167,7 @@ class HomePage extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: const Color(0xffcfc6ff),
                   borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
                       color: Colors.black12,
                       blurRadius: 4,

@@ -1,50 +1,64 @@
 import 'package:flutter/material.dart';
 
+
 class NumerosDeAyuda extends StatefulWidget {
   const NumerosDeAyuda({super.key});
   @override
   _NumerosDeAyudaState createState() => _NumerosDeAyudaState();
 }
 class _NumerosDeAyudaState extends State<NumerosDeAyuda> {
-  List<Map<String, String>> helpNumbers = [
-    {
-      "Servicio": "Emergencias",
-      "Número": "911",
-    },
-    {
-      "Servicio": "Locatel",
-      "Número": "56581111",
-    },
-    {
-      "Servicio": "Proteccion Civil",
-      "Número": "56832222",
-    },
-    {
-      "Servicio": "Cruz Roja",
-      "Número": "065",
-    },
-  ];
-
-  @override
+  final List<Map<String, String>> numerosEmergencia = [
+  {
+    "estado": "Ciudad de México",
+    "emergencia": "911",
+    "proteccionCivil": "5683 2222",
+    "cruzRoja": "5557 5757"
+  },
+  {
+    "estado": "Jalisco",
+    "emergencia": "911",
+    "proteccionCivil": "3636 7506",
+    "cruzRoja": "3336 5655"
+  },
+  {
+    "estado": "Guerrero",
+    "emergencia": "911",
+    "proteccionCivil": "7444 8461",
+    "cruzRoja": "7444 8505"
+  },
+  {
+    "estado": "Nuevo León",
+    "emergencia": "911",
+    "proteccionCivil": "8120 3030",
+    "cruzRoja": "8183 2020"
+  }
+];
+@override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Números de Ayuda"),
-      ),
+      appBar: AppBar(title: const Text("Números de Emergencia")),
       body: ListView.builder(
-        itemCount: helpNumbers.length,
+        itemCount: numerosEmergencia.length,
         itemBuilder: (context, index) {
-          final item = helpNumbers[index];
-          return ListTile(
-            leading: const Icon(Icons.phone),
-            title: Text(item["Servicio"]!),
-            subtitle: Text(item["Número"]!),
-            subtitleTextStyle: const TextStyle(
-              color: Colors.blue,
+          final item = numerosEmergencia[index];
+          return Card(
+            child: ListTile(
+              title: Text(item["estado"] ?? "",style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold,),),
+              leading: Icon(Icons.phone),
+              subtitle: Text(
+                "Emergencia: ${item["emergencia"]}\n"
+                "Protección Civil: ${item["proteccionCivil"]}\n"
+                "Cruz Roja: ${item["cruzRoja"]}",
+              ),
+              subtitleTextStyle: const TextStyle(
+                height: 1.6,
+                fontSize:15,
+                color: Colors.black,
+              ),
+              onTap: () {
+                //funcion para llamar
+              },
             ),
-            onTap: () {
-              // Aquí podrías agregar funcionalidad para llamar al número
-            },
           );
         },
       ),

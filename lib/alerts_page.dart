@@ -5,88 +5,86 @@ class AlertsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-   
-    final List<Map<String, dynamic>> alerts = [
-      {
-        "nivel": "Roja",
-        "descripcion":
-            "Peligro extremo: Un huracán categoría 5 se acerca con vientos mayores a 260 km/h y condiciones muy peligrosas. se espera fuerte oleaje, lluvias intensas y posible marejada cliclónica. se recomienda evacuar zonas costeras y buscar refugio seguro de inmediato.",
-        "color": Colors.red
-      },
-    ];
-
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("Alertas actuales"),
-        backgroundColor: const Color(0xffcfc6ff),
         elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        title: const Text(
+          "Alertas actuales",
+          style: TextStyle(color: Colors.black),
+        ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: ListView.builder(
-          itemCount: alerts.length,
-          itemBuilder: (context, index) {
-            final alerta = alerts[index];
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(25),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
 
-            return Container(
-              margin: const EdgeInsets.only(bottom: 15),
-              padding: const EdgeInsets.all(15),
+            // Ícono de alerta
+            const Icon(
+              Icons.warning_rounded,
+              color: Color(0xffB71C1C), // rojo oscuro
+              size: 60,
+            ),
+
+            const SizedBox(height: 15),
+
+            // Etiqueta "ALERTA ROJA"
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 5,
-                    offset: Offset(0, 3),
-                  )
-                ],
+                color: const Color(0xfff8c6c6), // rosa suave
+                borderRadius: BorderRadius.circular(20),
               ),
-              child: Row(
-                children: [
-                  // Círculo de color según la alerta
-                  Container(
-                    width: 25,
-                    height: 25,
-                    decoration: BoxDecoration(
-                      color: alerta["color"],
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 15),
+              child: const Text(
+                "ALERTA ROJA",
+                style: TextStyle(
+                  color: Color(0xffb71c1c),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
 
-                  // Texto de la alerta
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          alerta["nivel"],
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          alerta["descripcion"],
-                          style: const TextStyle(
-                            fontSize: 15,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                ],
+            const SizedBox(height: 30),
+
+            // TÍTULO
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Peligro extremo",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            );
-          },
+            ),
+
+            const SizedBox(height: 20),
+
+            // DESCRIPCIÓN
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "El huracán Otis se aproxima con vientos de hasta 265 km/h (categoría 5). "
+                "Se recomienda evacuar las zonas costeras y buscar refugio seguro inmediatamente.",
+                style: TextStyle(
+                  fontSize: 16,
+                  height: 1.4,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+
+          ],
         ),
       ),
     );
   }
 }
+
 /*class AlertPage extends StatelessWidget {
   final double latitude;
   final double longitude;

@@ -8,26 +8,9 @@ class AlertsPage extends StatelessWidget {
    
     final List<Map<String, dynamic>> alerts = [
       {
-        "nivel": "Verde",
-        "descripcion": "No hay peligro. Condiciones estables.",
-        "color": Colors.green
-      },
-      {
-        "nivel": "Amarilla",
-        "descripcion":
-            "Precaución: posibles lluvias intensas en las próximas horas.",
-        "color": Colors.yellow.shade700
-      },
-      {
-        "nivel": "Naranja",
-        "descripcion":
-            "Peligro moderado: fuertes vientos y riesgo de inundaciones.",
-        "color": Colors.orange
-      },
-      {
         "nivel": "Roja",
         "descripcion":
-            "Peligro alto: huracán cercano. Sigue las indicaciones oficiales.",
+            "Peligro extremo: Un huracán categoría 5 se acerca con vientos mayores a 260 km/h y condiciones muy peligrosas. se espera fuerte oleaje, lluvias intensas y posible marejada cliclónica. se recomienda evacuar zonas costeras y buscar refugio seguro de inmediato.",
         "color": Colors.red
       },
     ];
